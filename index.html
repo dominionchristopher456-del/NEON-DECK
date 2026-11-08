@@ -111,6 +111,13 @@
            display: grid; place-items: center; font: 900 23px var(--display); color: var(--cyan); box-shadow: 0 0 26px rgba(0,229,255,.7); }
 
 
+
+  /* ads (hidden until the adult account owner fills in the AdSense ID in SETTINGS) */
+  .ad { margin: 0 auto; padding-block: 24px; text-align: center; }
+  .ad small { display: block; color: #5f6590; font: 600 11px var(--body); letter-spacing: .22em; text-transform: uppercase; margin-bottom: 8px; }
+  .ad ins { display: block; min-height: 90px; }
+  footer a { color: var(--cyan); text-decoration: none; } footer a:hover { text-decoration: underline; }
+
   /* support the developer */
   .support-box { border: 1px solid var(--line); background: linear-gradient(135deg, rgba(255,47,179,.08), rgba(0,229,255,.06)); padding: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
   .support-box h2 { margin-bottom: 14px; }
@@ -232,6 +239,8 @@
       </div>
     </div>
 
+    <div class="ad" data-ad hidden><small>Advertisement</small><ins class="adsbygoogle" data-ad-format="auto" data-full-width-responsive="true"></ins></div>
+
     <section id="features">
       <div class="head"><div class="kicker">Features</div><h2>Built to play together</h2></div>
       <div class="grid">
@@ -333,6 +342,8 @@
       </details>
     </section>
 
+    <div class="ad" data-ad hidden><small>Advertisement</small><ins class="adsbygoogle" data-ad-format="auto" data-full-width-responsive="true"></ins></div>
+
     <div class="final">
       <h2>YOUR TURN.</h2>
       <p>Grab the installer and get a game going tonight.</p>
@@ -343,6 +354,7 @@
   <footer>
     <span>&copy; NEON DECK</span>
     <span>Windows 10 and 11 &middot; 2 to 4 players</span>
+    <a href="privacy.html">Privacy policy</a>
     <span id="contact"></span>
   </footer>
 </div>
@@ -350,17 +362,21 @@
   // ===================== PAYMENT SETTINGS (fill these in) =====================
   // Put your details between the quote marks. Anything left "" is hidden automatically.
   var SETTINGS = {
+    downloadUrl: "https://github.com/dominionchristopher456-del/NEON-DECK/releases/latest/download/NEON_DECK_Setup.exe",   // the online link to your installer (needed when the installer is stored on GitHub Releases)
     paystack: "",      // your Paystack or Flutterwave payment page link, e.g. "https://paystack.com/pay/yourname"
     paypal:   "",      // only if you have PayPal. Leave "" if not: the button is hidden
     coffee:   "",      // e.g. "https://buymeacoffee.com/yourname"
     bankName: "",      // e.g. "GTBank"
     accountName: "",   // the name on your account
     accountNumber: "", // your 10-digit account number
-    email: ""          // your contact email
+    email: "",         // your contact email
+    adsenseId: ""      // Google AdSense ID like "ca-pub-1234567890123456". Must come from an adult-owned account. Empty = no ads
   };
   // ============================================================================
   (function () {
-    var notes = [];
+    if (SETTINGS.downloadUrl) {
+      document.querySelectorAll("[data-dl]").forEach(function (a) { a.setAttribute("href", SETTINGS.downloadUrl); });
+    }
     document.querySelectorAll("[data-pay]").forEach(function (a) {
       var link = SETTINGS[a.getAttribute("data-pay")];
       if (link) { a.setAttribute("href", link); }
@@ -372,6 +388,23 @@
       document.getElementById("acctname").textContent = SETTINGS.accountName;
       document.getElementById("acct").textContent = SETTINGS.accountNumber;
     } else { bank.hidden = true; }
+    if (SETTINGS.adsenseId && /^ca-pub-\d{10,20}$/.test(SETTINGS.adsenseId)) {
+      var s = document.createElement("script");
+      s.async = true; s.crossOrigin = "anonymous";
+      s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + SETTINGS.adsenseId;
+      document.head.appendChild(s);
+      document.querySelectorAll("[data-ad]").forEach(function (box) {
+        box.hidden = false;
+        box.querySelector("ins").setAttribute("data-ad-client", SETTINGS.adsenseId);
+        try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+      });
+    }
+    var anyPay = [].some.call(document.querySelectorAll(".pay"), function (a) { return !a.hidden; });
+    if (!anyPay && bank.hidden) {                 // nothing filled in: hide the whole support section
+      document.querySelector("#support").hidden = true;
+      var nav = document.querySelector("nav a[href='#support']");
+      if (nav) { nav.setAttribute("href", "#faq"); nav.textContent = "Questions"; }
+    }
     var c = document.getElementById("contact");
     if (SETTINGS.email) { c.textContent = "Contact: " + SETTINGS.email; } else { c.hidden = true; }
   })();
